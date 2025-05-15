@@ -42,40 +42,53 @@
 
 TAGLINE='Nightfall (2024) by Dave Eddy'
 WEBSITE='https://nightfall.ysap.sh'
-BASE_URL='https://music.daveeddy.com/static/music/Nightfall - 2024/mp3'
+
+# You can change this to whatever as long as the folder contains mp3 files
+BASE_URL='file:///home/kayleigh/Music/Music/'
+
+# Track names excluding the .mp3 extension
 TRACKS=(
-	'01 Before the Night'
-	'02 Snowfall Serenade'
-	'03 Tears Unspoken'
-	'04 Colors'
-	'05 Gone'
-	'06 Safe House'
-	'07 B♭ Song (2024 Version)'
-	'08 Drifted Away'
-	'09 Piano Improvisation'
-	'10 Reverie Amidst Ruins'
-	'11 Echoes of Solace'
-	'12 Song for an Empty World'
-	'13 The Final Storm'
+	'$LOTHBOI - Moon Rock Shawty'
+	'100 gecs - Doritos & Fritos'
+	'100 gecs - Dumbest Girl Alive'
+	'50landing - remember'
+	'7th Obi - Too Many Nights'
+	'8 Graves - Evil'
+	'8 Graves - Mirrors'
+	'A$AP Rocky - Praise The Lord (Da Shine)'
+	'Adam Jensen - Good Day to Die Young'
+	'Adam Jensen - Leave Me Alone'
+	'again&again - hours'
+	'Age of Consent - Heartbreak'
+	'Ak3k & Blckbrd - Without a Trace'
+	'Aldael - Violet Evergarden ED'
+	'Alesda! - Nikoniko'
+	'A Lot Like Birds - Connector'
+	'A Lot Like Birds - Sesame Street Is No Place for Me'
+	'A Lot Like Birds - Shaking of the Frame'
+	'A Lot Like Birds - Truly Random Code'
 )
 IFS= read -d '' -r ALBUM_ART <<"EOF"
 
- ,ggg, ,ggggggg,
-dP""Y8,8P"""""Y8b                    ,dPYb,      I8   ,dPYb,             ,dPYb, ,dPYb,
-Yb, `8dP'     `88                    IP'`Yb      I8   IP'`Yb             IP'`Yb IP'`Yb
- `"  88'       88   gg               I8  8I   88888888I8  8I             I8  8I I8  8I
-     88        88   ""               I8  8'      I8   I8  8'             I8  8' I8  8'
-     88        88   gg     ,gggg,gg  I8 dPgg,    I8   I8 dP    ,gggg,gg  I8 dP  I8 dP
-     88        88   88    dP"  "Y8I  I8dP" "8I   I8   I8dP    dP"  "Y8I  I8dP   I8dP
-     88        88   88   i8'    ,8I  I8P    I8  ,I8,  I8P    i8'    ,8I  I8P    I8P
-     88        Y8,_,88,_,d8,   ,d8I ,d8     I8,,d88b,,d8b,_ ,d8,   ,d8b,,d8b,_ ,d8b,_
-     88        `Y88P""Y8P"Y8888P"88888P     `Y88P""Y8PI8"888P"Y8888P"`Y88P'"Y888P'"Y88
-                               ,d8I'                  I8 `8,
-                             ,dP'8I                   I8  `8,
-                            ,8"  8I                   I8   8I
-                            I8   8I                   I8   8I
-                            `8, ,8I                   I8, ,8'
-                             `Y8P"                     "Y8P'
+
+
+       ....                            .x+=:.         ..                                  ..       .. 
+   .xH888888Hx.                       z`    ^%  < .z@8"`         oec :              x .d88"  x .d88"  
+ .H8888888888888:       x.    .          .   <k  !@88E          @88888               5888R    5888R   
+ 888*"""?""*88888X    .@88k  z88u      .@8Ned8"  '888E   u      8"*88%        u      '888R    '888R   
+'f     d8x.   ^%88k  ~"8888 ^8888    .@^%8888"    888E u@8NL    8b.        us888u.    888R     888R   
+'>    <88888X   '?8    8888  888R   x88:  `)8b.   888E`"88*"   u888888> .@88 "8888"   888R     888R   
+ `:..:`888888>    8>   8888  888R   8888N=*8888   888E .dN.     8888R   9888  9888    888R     888R   
+        `"*88     X    8888  888R    %8"    R88   888E~8888     8888P   9888  9888    888R     888R   
+   .xHHhx.."      !    8888 ,888B .   @8Wou 9%    888E '888&    *888>   9888  9888    888R     888R   
+  X88888888hx. ..!    "8888Y 8888"  .888888P`     888E  9888.   4888    9888  9888   .888B .  .888B . 
+ !   "*888888888"      `Y"   'YP    `   ^"F     '"888*" 4888"   '888    "888*""888"  ^*888%   ^*888%  
+        ^"***"`                                    ""    ""      88R     ^Y"   ^Y'     "%       "%    
+                                                                 88>                                  
+                                                                 48                                   
+                                                                 '8                                   
+
+
 EOF
 
 # Requirements

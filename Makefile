@@ -1,11 +1,11 @@
 .PHONY: check
 check:
-	shellcheck ./nightfall
+	shellcheck ./duskfall
 
 # compile the web version
 .PHONY: web
 web:
-	cat nightfall > web/index.txt
+	cat duskfall > web/index.txt
 
 # deploy the website
 .PHONY: deploy
