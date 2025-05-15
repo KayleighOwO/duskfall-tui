@@ -3,7 +3,9 @@ duskfall
 
 A TUI to play music
 
-![screenshot](https://nightfall.ysap.sh/nightfall.gif)
+![screenshot](https://github.com/user-attachments/assets/c1ba6e41-0c7c-4b9c-911a-ff23eafb9fd9)
+
+
 
 Usage
 -----
