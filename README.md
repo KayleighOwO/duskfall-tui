@@ -10,7 +10,11 @@ A TUI to play music
 Usage
 -----
 
-Pull this source code and run it manually
+You can run the script over the internet with:
+
+    curl -fsSL https://kayleighowo.github.io/duskfall-tui/index.txt | bash -s -- <path-to-music-folder>
+
+Or, pull this source code and running it manually
 
     git clone https://github.com/KayleighOwO/duskfall-tui.git
     cd duskfall-tui
