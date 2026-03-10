@@ -40,34 +40,12 @@
 # Date: May 13, 2024
 # License: MIT
 
+# Silence shellcheck being stupid
+# shellcheck disable=SC2329 # function called via trap
+
 TAGLINE='Nightfall (2024) by Dave Eddy'
 WEBSITE='https://nightfall.ysap.sh'
 
-# You can change this to whatever as long as the folder contains mp3 files
-BASE_URL='file:///home/kayleigh/Music/Music/'
-
-# Track names excluding the .mp3 extension
-TRACKS=(
-	'$LOTHBOI - Moon Rock Shawty'
-	'100 gecs - Doritos & Fritos'
-	'100 gecs - Dumbest Girl Alive'
-	'50landing - remember'
-	'7th Obi - Too Many Nights'
-	'8 Graves - Evil'
-	'8 Graves - Mirrors'
-	'A$AP Rocky - Praise The Lord (Da Shine)'
-	'Adam Jensen - Good Day to Die Young'
-	'Adam Jensen - Leave Me Alone'
-	'again&again - hours'
-	'Age of Consent - Heartbreak'
-	'Ak3k & Blckbrd - Without a Trace'
-	'Aldael - Violet Evergarden ED'
-	'Alesda! - Nikoniko'
-	'A Lot Like Birds - Connector'
-	'A Lot Like Birds - Sesame Street Is No Place for Me'
-	'A Lot Like Birds - Shaking of the Frame'
-	'A Lot Like Birds - Truly Random Code'
-)
 IFS= read -d '' -r ALBUM_ART <<"EOF"
 
 
@@ -92,7 +70,7 @@ IFS= read -d '' -r ALBUM_ART <<"EOF"
 EOF
 
 # Requirements
-MIN_COLUMNS=110
+MIN_COLUMNS=128
 MIN_LINES=49
 
 # Global state
@@ -100,6 +78,7 @@ BG_JOB=
 NOW_PLAYING=
 PIPE=
 SELECTED=0
+SCROLL=0
 
 # pure-bash impl of *some* tput subcommands - this cuts down on the number of
 # fork+exec of `tput` commands when doing basic things like setting colors or
@@ -143,10 +122,8 @@ fatal() {
 	exit 1
 }
 
-# called when the process exits
-# shellcheck disable=SC2317
 cleanup() {
-	# reset the terminal
+    # reset the terminal
 	tput cnorm
 	tput rmcup
 	stty echo 2>/dev/null
@@ -216,69 +193,102 @@ draw-box() {
 
 # draw the UI (album art, track list, now playing, etc.)
 draw-ui() {
-	local track i
+    local track i
 
-	local x=$((COLUMNS / 2))
-	local y=$((LINES / 2 - 17))
+    local x=$((COLUMNS / 2))
+    local y=$((LINES / 2 - 17))
 
-	tput setaf 197
+    tput setaf 197
 
-	# draw album art
-	((x -= 43))
+    # compute inner border limits
+	local offset=5
+	local inner_left=$((offset * 2))
+	local inner_right=$((COLUMNS - offset * 2 - 2))
+	local inner_width=$((inner_right - inner_left))
+
+	local album_art_width=102
+	local album_x=$((inner_left + (inner_width - album_art_width)/2))
+
+	y=$((LINES / 2 - 17))  # keep vertical position
 	while IFS= read -r line; do
-		tput cup "$y" "$x"
+		tput cup "$y" "$album_x"
 		echo -n "$line"
 		((y++))
 	done <<< "$ALBUM_ART"
 
-	x=$((COLUMNS / 2 - 15))
+    x=$((COLUMNS / 2 - 15))
 
-	# draw album info
-	((y++))
-	tput cup "$y" "$x"
+    # draw album info
+    ((y++))
+    tput cup "$y" "$x"
+    tput setaf 207
+    echo -n "$TAGLINE"
+
+    # compute track region
+    tput setaf 183
+    ((y += 2))
+    local track_start_y=$((y + 1))           # leave space for top ↑
+    local track_end_y=$((LINES - 8))         # leave space for bottom ↓ + Now Playing
+    local max_visible=$((track_end_y - track_start_y + 1))
+
+    # compute right border of track column (matches inner box border)
+    local right_border=$((COLUMNS - 12))
+    local track_width=$((right_border - x))
+    ((track_width < 1)) && track_width=1   # safety clamp
+
+    # adjust scroll window to keep selection visible
+    if ((SELECTED < SCROLL)); then
+        SCROLL=$SELECTED
+    elif ((SELECTED >= SCROLL + max_visible)); then
+        SCROLL=$((SELECTED - max_visible + 1))
+    fi
+
+    # draw top scroll indicator
+    tput cup $((track_start_y - 1)) "$x"
+    if ((SCROLL > 0)); then
+        printf '%-*s' "$track_width" "  ↑ more"
+    else
+        printf '%-*s' "$track_width" " "
+    fi
+
+    # draw bottom scroll indicator
+    tput cup $((track_end_y + 1)) "$x"
+    if ((SCROLL + max_visible < ${#TRACKS[@]})); then
+        printf '%-*s' "$track_width" "  ↓ more"
+    else
+        printf '%-*s' "$track_width" " "
+    fi
+
+    # draw visible tracks
+    y=$track_start_y
+    for ((i = SCROLL; i < SCROLL + max_visible && i < ${#TRACKS[@]}; i++)); do
+        track=${TRACKS[i]}
+        local name
+		name=$(basename "$track" .mp3)
+
+        local arrow='   '
+        ((SELECTED == i)) && arrow=' ->'
+
+        tput cup "$y" "$x"
+        printf '%-*s' "$track_width" "$arrow $name"
+        ((y++))
+    done
+
+    # draw Now Playing at the very bottom, centered
 	tput setaf 207
-	echo -n "$TAGLINE"
+	local now_y=$((LINES - 1))
+	tput cup "$now_y" 0
 
-	# draw tracklist
-	tput setaf 183
-	((y += 2))
-	i=1
-	local max=0
-	for track in "${TRACKS[@]}"; do
-		if ((${#track} > max)); then
-			max=${#track}
-		fi
-
-		local arrow='   '
-		if ((SELECTED + 1 == i)); then
-			arrow=' ->'
-		fi
-
-		tput cup "$y" "$x"
-		echo -n "$arrow $track"
-
-		((y++))
-		((i++))
-	done
-
-	# draw now playing
-	((y++))
-	tput cup "$y" "$x"
-	tput setaf 207
+	# prepare the text
+	local now_text
 	if [[ -n $NOW_PLAYING ]]; then
-		printf 'Now Playing: %-*s' "$max" "${TRACKS[NOW_PLAYING]}"
+		now_text="Now Playing: $(basename "${TRACKS[NOW_PLAYING]}" .mp3)"
 	else
-		# clear the now playing
-		printf '             %-*s' "$max" ' '
+		now_text=""
 	fi
 
-	tput sgr0
-}
-
-# given a track name return a link to the mp3
-make-url() {
-	local name=$1
-	echo "$BASE_URL/$name.mp3"
+	# clear the entire bottom line and center the text
+	printf '%*s%s%*s' $(((COLUMNS - ${#now_text}) / 2)) "" "$now_text" $(((COLUMNS - ${#now_text} + 1) / 2)) ""
 }
 
 # stop any song currently playing
@@ -310,8 +320,7 @@ play() {
 
 	# play the song by URL
 	local url
-	url=$(make-url "$track")
-	play-song-task "$url" <&- &
+	play-song-task "$track" <&- &
 }
 
 # background task to play a song and transmit up its data
@@ -353,6 +362,22 @@ read-keyboard-events-task() {
 }
 
 main() {
+	local MUSIC_DIR=$1
+
+	if [[ -z $MUSIC_DIR ]]; then
+		fatal "usage: $0 <music-folder>"
+	fi
+
+	if [[ ! -d $MUSIC_DIR ]]; then
+		fatal "not a directory: $MUSIC_DIR"
+	fi
+
+	TRACKS=()
+
+	while IFS= read -r -d '' file; do
+		TRACKS+=("$file")
+	done < <(find "$MUSIC_DIR" -maxdepth 1 -type f -iname '*.mp3' -print0 | sort -z)
+	
 	if ! command -v ffplay &>/dev/null; then
 		echo 'ffplay (by ffmpeg) required for playback'
 		echo 'install "ffmpeg" with your package manager and try again'
